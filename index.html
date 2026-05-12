@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>For You, My Love 💌</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg:      #1a0e10;
+      --surface: #221418;
+      --card:    #2d1a1e;
+      --border:  rgba(180,120,110,0.18);
+      --accent:  #b85c72;
+      --accent2: #8c3a52;
+      --gold:    #c9a96e;
+      --text:    #f2e8e0;
+      --muted:   #9e8070;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* ---- ENTER OVERLAY ---- */
+    #enter-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 1s ease, visibility 1s;
+    }
+
+    .enter-btn {
+      padding: 1.2rem 3rem;
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid var(--gold);
+      border-radius: 50px;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.1em;
+    }
+
+    .enter-btn:hover {
+      background: var(--gold);
+      color: var(--bg);
+      box-shadow: 0 0 20px rgba(201,169,110,0.3);
+    }
+
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ---- HERO ---- */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    #hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 7vw, 5rem);
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+
+    #hero h1 em { font-style: italic; color: var(--accent); }
+
+    .subtitle {
+      font-size: clamp(0.88rem, 2vw, 1rem);
+      color: var(--muted);
+      margin-bottom: 3.5rem;
+    }
+
+    /* ---- ENVELOPE ---- */
+    .envelope-wrap { cursor: pointer; }
+
+    .envelope {
+      width: 300px;
+      height: 210px;
+      position: relative;
+      transition: transform 0.3s ease;
+      filter: drop-shadow(0 16px 40px rgba(184,92,114,0.3));
+    }
+
+    .envelope:hover { transform: scale(1.04) translateY(-4px); }
+
+    .env-body {
+      width: 100%; height: 100%;
+      background: var(--card);
+      border: 1.5px solid rgba(201,169,110,0.25);
+      border-radius: 4px 4px 14px 14px;
+      position: absolute; top: 0; left: 0; z-index: 2;
+    }
+
+    .env-flap {
+      position: absolute; top: 0; left: 0;
+      width: 0; height: 0;
+      border-left: 150px solid transparent;
+      border-right: 150px solid transparent;
+      border-top: 105px solid #3a1e24;
+      z-index: 5;
+      transform-origin: top center;
+      transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .env-bottom-left {
+      position: absolute; bottom: 0; left: 0;
+      width: 0; height: 0;
+      border-bottom: 105px solid #261418;
+      border-right: 150px solid transparent;
+      z-index: 3;
+    }
+
+    .env-bottom-right {
+      position: absolute; bottom: 0; right: 0;
+      width: 0; height: 0;
+      border-bottom: 105px solid #261418;
+      border-left: 150px solid transparent;
+      z-index: 3;
+    }
+
+    .env-seal {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 6; width: 52px; height: 52px;
+      background: var(--accent2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); border: 2px solid var(--gold);
+      transition: opacity 0.4s ease;
+    }
+
+    .env-label {
+      position: absolute; bottom: 18px; width: 100%;
+      text-align: center; z-index: 6;
+      font-family: 'Playfair Display', serif; font-style: italic;
+      font-size: 0.92rem; color: var(--muted);
+    }
+
+    .envelope.is-open .env-flap { transform: rotateX(180deg); }
+    .envelope.is-open .env-seal { opacity: 0; pointer-events: none; }
+
+    /* ---- LETTER & TIMER ---- */
+    #letter-section, #timer-section {
+      display: none;
+      opacity: 0;
+      max-width: 660px;
+      margin: 3rem auto 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 3.5rem 3rem;
+      position: relative;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      line-height: 2;
+      color: #e8d8cc;
+      text-align: left;
+      transition: opacity 0.9s ease;
+    }
+
+    #letter-section.visible, #timer-section.visible { opacity: 1; }
+
+    .letter-date {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: var(--gold);
+      margin-bottom: 2rem;
+      text-transform: uppercase;
+    }
+
+    .letter-sign {
+      margin-top: 2.5rem;
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    #countdown-display {
+      font-family: 'Lato', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      color: var(--accent);
+      margin: 2rem 0;
+      text-align: center;
+    }
+
+    .scroll-hint {
+      display: none;
+      margin-top: 3rem;
+      text-align: center;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 0.72rem;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+    /* ---- QUESTION SECTION ---- */
+    #question-section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    #question-section.in-view { opacity: 1; }
+
+    #question-section h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      margin-bottom: 2rem;
+    }
+    #question-section h2 em { color: var(--accent); font-style: italic; }
+
+    .btn-group { display: flex; gap: 2rem; justify-content: center; }
+
+    .btn-yes {
+      padding: 1rem 3rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(184,92,114,0.3);
+      transition: transform 0.2s;
+    }
+    .btn-yes:hover { transform: scale(1.05); }
+
+    .btn-no {
+      padding: 1rem 3rem;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--muted);
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    /* ---- DATE DETAILS ---- */
+    #date-details {
+      display: none;
+      opacity: 0;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 4rem 2rem 10rem;
+      transition: opacity 1s ease;
+    }
+
+    #date-details.visible { display: block; opacity: 1; }
+
+    .details-header { text-align: center; margin-bottom: 3.5rem; }
+    .details-header .eyebrow { font-size: 0.72rem; font-weight: 700; color: var(--gold); letter-spacing: 0.25em; text-transform: uppercase; }
+
+    .detail-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      margin-bottom: 1px;
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 1.5rem;
+    }
+    .detail-card:first-of-type { border-radius: 12px 12px 0 0; }
+    .detail-card:last-of-type { border-radius: 0 0 12px 12px; }
+
+    .card-num { color: var(--accent); font-style: italic; font-size: 1.1rem; text-align: right; }
+    .detail-text h4 { color: var(--gold); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .detail-text p { font-family: 'Playfair Display', serif; font-size: 1.1rem; line-height: 1.6; }
+    .detail-note { display: block; margin-top: 0.4rem; font-size: 0.85rem; color: var(--muted); }
+
+    footer { text-align: center; padding: 4rem; color: var(--muted); font-style: italic; }
+    #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1000; }
+  </style>
+</head>
+<body>
+
+  <div id="enter-overlay">
+    <button class="enter-btn" onclick="startExperience()">A heart that is made by You</button>
+  </div>
+
+  <canvas id="stars-canvas"></canvas>
+  <canvas id="confetti-canvas"></canvas>
+
+  <audio id="mainAudio" loop pre-load="auto">
+    <source src="pahintulot.mp3" type="audio/mpeg">
+  </audio>
+
+  <section id="hero">
+    <p class="hero-eyebrow">One Year · One Heart · Always</p>
+    <h1>Happy <em>Anniversary Baby,</em><br>Isabelle Kate Navarro</h1>
+    <p class="subtitle">Press the envelope to open your letter.</p>
+
+    <div class="envelope-wrap" onclick="openEnvelope()">
+      <div class="envelope" id="envelope">
+        <div class="env-flap"></div>
+        <div class="env-bottom-left"></div>
+        <div class="env-bottom-right"></div>
+        <div class="env-body"></div>
+        <div class="env-seal">♥</div>
+        <div class="env-label">tap to open</div>
+      </div>
+    </div>
+
+    <div id="letter-section">
+      <p class="letter-date">May 15, 2026</p>
+      <div class="letter-body">
+        <p>My love,</p>
+        <br>
+        <p>To love a person is to attend a thousand funerals of the people they used to be, is something I always go by and always looking forward onto being with you, to get to know you as the days goes by, to learn and to experience being loved by you is something i always seek out for myself. Learning how to love you was the best thing I could ever have.</p>
+        <br>
+        <p>For a year that we've been together is something that I never thought I could ever have. I may not be good with words but I know for a fact that my actions will eventually reach you. We had our ups and our downs but I know that it is part of the process, words that will convey everything that we will do, actions that we can prove so that we can stay, forever.</p>
+        <br>
+        <p>I can't believe that a year goes by so quickly, A year full of hope and sadness, yet overcame by our love. I couldn't be more happier than that.</p>
+        <br>
+        <p>twelve months seems so small compared to what have happened to the rest of our lives before, those twelve months that we've shared together, two birthdays, one christmas and a whole new year. and an never ending feeling of being loved by you. Never have i thought that I would love someone so vast, that my perspective of the universe would expand.</p>
+        <br>
+        <p>You have made my world bigger, I Love You Baby.</p>
+      </div>
+      <p class="letter-sign">Forever yours, Vynz ♥</p>
+    </div>
+
+    <div id="timer-section">
+      <p class="letter-date">Locked until May 15</p>
+      <div class="letter-body">
+        <p>You will need to be patient with this one baby...</p>
+        <div id="countdown-display">00d 00h 00m 00s</div>
+      </div>
+    </div>
+
+    <div class="scroll-hint" id="scroll-hint"><span>↓</span> scroll down</div>
+  </section>
+
+  <section id="question-section">
+    <p class="hero-eyebrow">A question for you</p>
+    <h2>Will you be my<br><em>forever date?</em></h2>
+    <div class="btn-group">
+      <button class="btn-yes" onclick="pressedYes()">Yes, always</button>
+      <button class="btn-no" id="btn-no" onmouseover="runAway()" onclick="runAway()">No</button>
+    </div>
+  </section>
+
+  <section id="date-details">
+    <div class="details-header">
+      <p class="eyebrow">The Plan</p>
+      <h3 style="font-family:'Playfair Display'; font-size:2.5rem; margin-top:1rem;">Here's what I have<br><em>planned for us</em></h3>
+    </div>
+
+    <div class="detail-card">
+      <span class="card-num">i</span>
+      <div class="detail-text">
+        <h4>When</h4>
+        <p>Friday, May 15, 2026</p>
+        <span class="detail-note">13:00 | 18:00 - Pick you up after school or at your house</span>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <span class="card-num">ii</span>
+      <div class="detail-text">
+        <h4>Where</h4>
+        <p>shōfuku しょうふく</p>
+        <span class="detail-note">The Hood. Sto Rosario Street, Angeles City</span>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <span class="card-num">iii</span>
+      <div class="detail-text">
+        <h4>What we'll do</h4>
+        <p>Romantic anniversary dinner, walk around sto rosario, and a surprise ~</p>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <span class="card-num">iv</span>
+      <div class="detail-text">
+        <h4>What to wear</h4>
+        <p>Casual White to match with your uniform</p>
+        <span class="detail-note">But wear whatever you want, you look perfect either way.</span>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <span class="card-num">v</span>
+      <div class="detail-text">
+        <h4>One last thing</h4>
+        <p>I can't wait to celebrate our anniversary together baby.</p>
+        <span class="detail-note">PS: I'll be kissing you, A lot.</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>A love that trancends through a thousand lifetime | Vynz &amp; Kate</footer>
+
+  <script>
+    // NEW: START EXPERIENCE TRIGGER
+    function startExperience() {
+        // Fade out overlay
+        const overlay = document.getElementById('enter-overlay');
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.visibility = 'hidden', 1000);
+
+        // Play the audio immediately upon clicking "Enter"
+        const audio = document.getElementById('mainAudio');
+        if(audio) audio.play().catch(e => console.log("Autoplay blocked"));
+    }
+
+    // 1. OPEN ENVELOPE
+    function openEnvelope() {
+      const env = document.getElementById('envelope');
+      if (env.classList.contains('is-open')) return;
+      env.classList.add('is-open');
+
+      const now = new Date();
+      const unlockDate = new Date('2026-05-15T00:00:00');
+      const isUnlocked = now >= unlockDate;
+
+      const target = isUnlocked ? document.getElementById('letter-section') : document.getElementById('timer-section');
+      
+      setTimeout(() => {
+        target.style.display = 'block';
+        setTimeout(() => {
+            target.classList.add('visible');
+            document.getElementById('scroll-hint').style.display = 'block';
+        }, 50);
+      }, 800);
+    }
+
+    // 2. NO BUTTON RUN AWAY
+    function runAway() {
+      const btn = document.getElementById('btn-no');
+      btn.style.position = 'fixed';
+      btn.style.left = (Math.random() * 70 + 15) + 'vw';
+      btn.style.top = (Math.random() * 70 + 15) + 'vh';
+      btn.style.zIndex = "1000";
+    }
+
+    // 3. YES BUTTON REVEAL
+    function pressedYes() {
+      const details = document.getElementById('date-details');
+      details.style.display = 'block';
+      
+      setTimeout(() => {
+        details.classList.add('visible');
+        details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        launchConfetti();
+      }, 50);
+    }
+
+    // 4. STARS
+    (function() {
+      const canvas = document.getElementById('stars-canvas');
+      const ctx = canvas.getContext('2d');
+      let W, H, stars;
+      function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+      function init() { stars = Array.from({ length: 120 }, () => ({ x: Math.random()*W, y: Math.random()*H, r: Math.random()*1.2, phase: Math.random()*20 })); }
+      function draw(t) {
+        ctx.clearRect(0,0,W,H);
+        stars.forEach(s => {
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+          ctx.fillStyle = `rgba(201,169,110,${0.3 + 0.4 * Math.sin(t/1000 + s.phase)})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      resize(); init(); draw(0);
+      window.onresize = resize;
+    })();
+
+// 5. TIMER (Improved Real-Time Logic)
+    function updateCountdown() {
+      const countdownElement = document.getElementById('countdown-display');
+      if (!countdownElement) return;
+
+      const now = new Date().getTime();
+      const targetDate = new Date('May 15, 2026 00:00:00').getTime();
+      const diff = targetDate - now;
+
+      if (diff > 0) {
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        // padStart(2, '0') makes 9 seconds look like 09 seconds
+        const dayStr = String(d).padStart(2, '0');
+        const hrStr = String(h).padStart(2, '0');
+        const minStr = String(m).padStart(2, '0');
+        const secStr = String(s).padStart(2, '0');
+
+        countdownElement.innerText = `${dayStr}d ${hrStr}h ${minStr}m ${secStr}s`;
+      } else {
+        countdownElement.innerText = "The wait is over! Refresh the page.";
+        countdownElement.style.fontSize = "1.2rem"; // Make text fit
+      }
+    }
+
+    // Run once immediately so it's not empty for the first second
+    updateCountdown(); 
+    // Then run every second
+    setInterval(updateCountdown, 1000);
+
+    // 6. OBSERVER
+    const obs = new IntersectionObserver(entries => {
+      if(entries[0].isIntersecting) document.getElementById('question-section').classList.add('in-view');
+    }, {threshold: 0.3});
+    obs.observe(document.getElementById('question-section'));
+
+    // 7. CONFETTI
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+      let pieces = Array.from({length: 100}, () => ({x: Math.random()*canvas.width, y: -20, v: 3+Math.random()*4, s: 5+Math.random()*7, c: '#b85c72'}));
+      function step() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        pieces.forEach(p => { p.y += p.v; ctx.fillStyle = p.c; ctx.fillRect(p.x, p.y, p.s, p.s); });
+        if(pieces[0].y < canvas.height + 100) requestAnimationFrame(step);
+      }
+      step();
+    }
+  </script>
+</body>
+</html>
