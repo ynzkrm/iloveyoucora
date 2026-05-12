@@ -484,17 +484,25 @@
 
     // 3. YES BUTTON REVEAL
     function pressedYes() {
-      // Hide the question and the buttons immediately
-      document.getElementById('question-section').style.display = 'none';
-      
+      // 1. Completely remove the "No" button from the layout
+      const noBtn = document.getElementById('btn-no');
+      if(noBtn) noBtn.style.display = 'none';
+
+      // 2. Center the "Yes" button and make it look "Selected"
+      const yesBtn = document.querySelector('.btn-yes');
+      yesBtn.innerText = "Yes, always! ♥";
+      yesBtn.style.transform = "scale(1.1)";
+      yesBtn.style.pointerEvents = "none"; // Stop further clicking
+
+      // 3. Show the itinerary details
       const details = document.getElementById('date-details');
       details.style.display = 'block';
       
       setTimeout(() => {
         details.classList.add('visible');
-        details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        details.scrollIntoView({ behavior: 'smooth', block: 'center' });
         launchConfetti();
-      }, 50);
+      }, 500); // Slight delay so she can see the "Yes" highlight before it scrolls
     }
 
     // 4. STARS
