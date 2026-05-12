@@ -484,6 +484,9 @@
 
     // 3. YES BUTTON REVEAL
     function pressedYes() {
+      // Hide the question and the buttons immediately
+      document.getElementById('question-section').style.display = 'none';
+      
       const details = document.getElementById('date-details');
       details.style.display = 'block';
       
@@ -558,13 +561,42 @@
     function launchConfetti() {
       const canvas = document.getElementById('confetti-canvas');
       const ctx = canvas.getContext('2d');
-      canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-      let pieces = Array.from({length: 100}, () => ({x: Math.random()*canvas.width, y: -20, v: 3+Math.random()*4, s: 5+Math.random()*7, c: '#b85c72'}));
+      canvas.width = window.innerWidth; 
+      canvas.height = window.innerHeight;
+      
+      let pieces = Array.from({length: 100}, () => ({
+        x: Math.random()*canvas.width, 
+        y: -20, 
+        v: 3+Math.random()*4, 
+        s: 5+Math.random()*7, 
+        c: '#b85c72'
+      }));
+
+      let running = true;
+
       function step() {
+        if (!running) return;
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        pieces.forEach(p => { p.y += p.v; ctx.fillStyle = p.c; ctx.fillRect(p.x, p.y, p.s, p.s); });
-        if(pieces[0].y < canvas.height + 100) requestAnimationFrame(step);
+        pieces.forEach(p => { 
+          p.y += p.v; 
+          ctx.fillStyle = p.c; 
+          ctx.fillRect(p.x, p.y, p.s, p.s); 
+        });
+        
+        // Keep animating as long as pieces are on screen
+        if(pieces[0].y < canvas.height + 100) {
+          requestAnimationFrame(step);
+        } else {
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+        }
       }
+
+      // Stop generating/rendering after 5 seconds so it doesn't "irritate" the view
+      setTimeout(() => {
+        running = false;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+      }, 5000);
+
       step();
     }
   </script>
